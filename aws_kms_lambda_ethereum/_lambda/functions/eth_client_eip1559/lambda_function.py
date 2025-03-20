@@ -64,6 +64,7 @@ def lambda_handler(event, context):
         # optional params
         chainid = event.get('chainid')
         type = event.get('type')
+        gas_limit = event.get('gas_limit')
         max_fee_per_gas = event.get('max_fee_per_gas')
         max_priority_fee_per_gas = event.get('max_priority_fee_per_gas')
 
@@ -79,6 +80,7 @@ def lambda_handler(event, context):
                                   nonce=nonce,
                                   chainid=chainid,
                                   type=type,
+                                  gas_limit=gas_limit,
                                   max_fee_per_gas=max_fee_per_gas,
                                   max_priority_fee_per_gas=max_priority_fee_per_gas,
                                   data=data)
