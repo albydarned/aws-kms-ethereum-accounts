@@ -19,7 +19,8 @@ class EthLambda(Construct):
                  scope: Construct,
                  id: str,
                  dir: str,
-                 env: dict
+                 env: dict,
+                 name: str
                  ):
         super().__init__(scope, id)
 
@@ -40,6 +41,7 @@ class EthLambda(Construct):
         lf = aws_lambda.Function(
             self,
             "Function",
+            function_name=name,
             handler="lambda_function.lambda_handler",
             runtime=aws_lambda.Runtime.PYTHON_3_9,
             environment=env,
@@ -58,6 +60,11 @@ class AwsKmsLambdaEthereumStack(Stack):
 
         cmk = aws_kms.Key(self, "eth-cmk-identity",
                           removal_policy=RemovalPolicy.DESTROY)
+        
+        aws_kms.Alias(self, "eth-cmk-alias",
+              alias_name="alias/minter10-identity",  # Must start with "alias/"
+              target_key=cmk)
+
         cfn_cmk = cmk.node.default_child
         cfn_cmk.key_spec = 'ECC_SECG_P256K1'
         cfn_cmk.key_usage = 'SIGN_VERIFY'
@@ -67,7 +74,8 @@ class AwsKmsLambdaEthereumStack(Stack):
                                env={"LOG_LEVEL": "DEBUG",
                                     "KMS_KEY_ID": cmk.key_id,
                                     "ETH_NETWORK": eth_network
-                                    }
+                                    },
+                                name="minter10-client"
                                )
 
         cmk.grant(eth_client.lf, 'kms:GetPublicKey')
@@ -78,7 +86,8 @@ class AwsKmsLambdaEthereumStack(Stack):
                                        env={"LOG_LEVEL": "DEBUG",
                                             "KMS_KEY_ID": cmk.key_id,
                                             "ETH_NETWORK": eth_network
-                                            }
+                                            },
+                                        name="minter10-eip1559"
                                        )
 
         cmk.grant(eth_client_eip1559.lf, 'kms:GetPublicKey')
