@@ -154,7 +154,6 @@ def get_tx_params(dst_address: str, amount: int, nonce: int,
                   chainid: int, type: int, gas_limit: int, max_fee_per_gas: int, max_priority_fee_per_gas: int, data: str) -> dict:
     transaction = {
         'nonce': nonce,
-        'to': dst_address,
         'value': w3.toWei(amount, 'ether'),
         'data': data,
         'gas': gas_limit,
@@ -163,6 +162,12 @@ def get_tx_params(dst_address: str, amount: int, nonce: int,
         'type': type,
         'chainId': chainid,
     }
+
+    # CONTRACT CREATION: omit `to` entirely when no destination is given —
+    # eth-account then encodes an empty `to` field (allow_empty=True with an
+    # empty default) and the network executes `data` as init code.
+    if dst_address:
+        transaction['to'] = dst_address
 
     return transaction
 

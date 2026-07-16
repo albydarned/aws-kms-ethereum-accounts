@@ -44,9 +44,14 @@ def lambda_handler(event, context):
     #  "nonce": 0}
     elif operation == 'sign':
 
-        if not (event.get('dst_address') and event.get('amount', -1) >= 0 and event.get('nonce', -1) >= 0):
+        # dst_address is optional for CONTRACT CREATION: when it is absent,
+        # `data` must carry the init code and the signed tx omits the `to`
+        # field entirely. (An empty `to` is what makes the network execute
+        # `data` as init code — the zero address would be a regular call
+        # that burns the payload.)
+        if not ((event.get('dst_address') or event.get('data')) and event.get('amount', -1) >= 0 and event.get('nonce', -1) >= 0):
             return {'operation': 'sign',
-                    'error': 'missing parameter - sign requires amount, dst_address and nonce to be specified'}
+                    'error': 'missing parameter - sign requires amount, nonce and either dst_address or data (contract creation) to be specified'}
 
         # get key_id from environment varaible
         key_id = os.getenv('KMS_KEY_ID')
